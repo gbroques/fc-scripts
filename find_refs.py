@@ -63,8 +63,8 @@ def parse_document_xml(document: str) -> Element:
     return ElementTree.fromstring(document_xml)
 
 
-def find_root_by_document(cwd: str) -> Dict[str, Element]:
-    """Returns a dictionary where keys are document names,
+def find_root_by_document_path(cwd: str) -> Dict[str, Element]:
+    """Returns a dictionary where keys are filepaths to documents,
     and values are document xml root elements.
     """
     root_by_document = {}
@@ -120,7 +120,9 @@ def make_find_references_in_expression_engine(reference: Reference) -> Callable[
                                             reference)
 
 
-def find_references_in_root(document: str, root: Element, reference: Reference) -> List[Match]:
+def find_references_in_root(document_path: str,
+                            root: Element,
+                            reference: Reference) -> List[Match]:
     matches = []
     object_data = root.find('ObjectData')
     for object in object_data:
@@ -133,7 +135,7 @@ def find_references_in_root(document: str, root: Element, reference: Reference) 
             locations = find_locations(reference)
             for location in locations:
                 matches.append(
-                    Match(document, object_name, property_name, location))
+                    Match(document_path, object_name, property_name, location))
     return matches
 
 
@@ -204,10 +206,10 @@ def create_property(property_element: Element) -> Property:
 
 def find_references(cwd: str, reference: Reference) -> List[Match]:
     matches = []
-    root_by_document = find_root_by_document(cwd)
-    for document, root in root_by_document.items():
+    root_by_document_path = find_root_by_document_path(cwd)
+    for document_path, root in root_by_document_path.items():
         matches_in_document = find_references_in_root(
-            document, root, reference)
+            document_path, root, reference)
         matches.extend(matches_in_document)
     return matches
 
