@@ -73,6 +73,20 @@ def make_find_references_in_property(child_element_name: str,
                                      reference_attribute: str,
                                      location_attribute: str,
                                      reference: Reference) -> Callable[[Element], List[str]]:
+    """
+    XML Examples::
+
+       <Cell address="B1" content="=Main#Spreadsheet.Value" alias="Value1" />
+       <Expression path="Radius" expression="Main#Spreadsheet.Value"/>
+
+    +--------------------+---------------------+--------------------+
+    | child_element_name | reference_attribute | location_attribute |
+    +====================+=====================+====================+
+    | Cell               | content             | address            |
+    +--------------------+---------------------+--------------------+
+    | Expression         | expression          | path               |
+    +--------------------+---------------------+--------------------+
+    """
     def find_references_in_property(property: Element) -> List[str]:
         locations = []
         for child_element in property.findall(child_element_name):
@@ -146,6 +160,28 @@ def make_find_locations(property_element: Element) -> Callable[[Reference], List
 
 
 def create_property(property_element: Element) -> Property:
+    """
+    XML Examples::
+
+        <Property name="cells" type="Spreadsheet::PropertySheet" status="67108864">
+            <Cells Count="4" xlink="1">
+                ...
+            </Cells>
+        </Property>
+        <Property name="ExpressionEngine" type="App::PropertyExpressionEngine" status="67108864">
+            <ExpressionEngine count="2" xlink="1">
+                ...
+            </ExpressionEngine>
+        </Property>
+
+    +--------------------+---------------------+
+    | property_name      | nested_element_name |
+    +====================+=====================+
+    | cells              | Cells               |
+    +--------------------+---------------------+
+    | ExpressionEngine   | ExpressionEngine    |
+    +--------------------+---------------------+
+    """
     property_name = property_element.attrib['name']
     if property_name == 'cells':
         return Property(property_element, 'Cells', make_find_references_in_cells)
