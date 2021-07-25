@@ -181,6 +181,10 @@ def create_property(property_element: Element) -> Property:
     +--------------------+---------------------+
     | ExpressionEngine   | ExpressionEngine    |
     +--------------------+---------------------+
+
+    FreeCAD Source:
+    * `Cells <https://github.com/FreeCAD/FreeCAD/blob/0.19.2/src/Mod/Spreadsheet/App/PropertySheet.cpp#L277-L304>`_
+    * `Expression Engine <https://github.com/FreeCAD/FreeCAD/blob/0.19.2/src/App/PropertyExpressionEngine.cpp#L163-L185>`_
     """
     property_name = property_element.attrib['name']
     if property_name == 'cells':
