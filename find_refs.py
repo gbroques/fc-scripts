@@ -48,10 +48,11 @@ class Match:
         return self._to_string()
 
     def _to_string(self):
-        return '{} {}.{}'.format(
+        return '{} {}.{} ({})'.format(
             self.document,
             self.object_name,
-            self.location)
+            self.location,
+            self.property_name)
 
 
 def parse_document_xml(document: str) -> Element:
