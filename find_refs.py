@@ -204,14 +204,52 @@ def find_refs(ref: Reference) -> List[Match]:
     return matches
 
 
-def rename_refs(document: str, spreadsheet: str, alias: str) -> List[Match]:
-    matches = []
-    root_by_document = find_root_by_document()
-    for document_name, root in root_by_document.items():
-        ref = Reference(document, spreadsheet, alias)
-        matches_in_doc = find_references_in_root(document_name, root, ref)
-        matches.extend(matches_in_doc)
-    return matches
+def rename_refs(from_ref: Reference, to_ref: Reference) -> Dict[str, Element]:
+    pass
+
+
+def remove_cross_document_links(document: str) -> Dict[str, Element]:
+    """
+    https://github.com/FreeCAD/FreeCAD/blob/0.19.2/src/App/PropertyLinks.cpp#L4473-L4510
+    https://github.com/FreeCAD/FreeCAD/blob/0.19.2/src/App/PropertyLinks.cpp#L3155-L3249
+
+    EMPTY
+    =====
+    <Cells Count="2" xlink="1">
+        <XLinks count="0">
+        </XLinks>
+        <Cell address="A1" content="Test" />
+        <Cell address="B1" content="5" alias="Test" />
+    </Cells>
+    <Property name="ExpressionEngine" type="App::PropertyExpressionEngine" status="67108864">
+        <ExpressionEngine count="0">
+        </ExpressionEngine>
+    </Property>
+
+    XLINKS
+    ======
+    <Cells Count="4" xlink="1">
+        <XLinks count="1" docs="1">
+            <DocMap name="Master" label="Master" index="0"/>
+            <XLink file="Master.FCStd" stamp="2021-07-25T18:40:15Z" name="Spreadsheet"/>
+        </XLinks>
+        <Cell address="A1" content="Value" />
+        <Cell address="B1" content="=Master#Spreadsheet.Value" alias="Value1" />
+        <Cell address="D8" content="Value" />
+        <Cell address="E8" content="=&lt;&lt;Master&gt;&gt;#&lt;&lt;Spreadsheet&gt;&gt;.Value" alias="Value2" />
+    </Cells>
+    <ExpressionEngine count="2" xlink="1">
+        <XLinks count="2" docs="2">
+            <DocMap name="Master" label="Master" index="1"/>
+            <DocMap name="Cube" label="Cube" index="0"/>
+            <XLink file="Cube.FCStd" stamp="2021-07-25T20:03:03Z" name="Box"/>
+            <XLink file="Master.FCStd" stamp="2021-07-25T18:40:15Z" name="Spreadsheet"/>
+        </XLinks>
+        <Expression path="Height" expression="Cube#Box.Height"/>
+        <Expression path="Radius" expression="Master#Spreadsheet.Value"/>
+    </ExpressionEngine>
+    """
+    pass
 
 
 if __name__ == '__main__':
@@ -225,7 +263,9 @@ if __name__ == '__main__':
     ref = Reference(args.document, args.spreadsheet, args.alias)
     matches = find_refs(ref)
     if matches:
-        print('{} references to {} found:'.format(len(matches), ref))
+        num_matches = len(matches)
+        word = 'refrence' if num_matches == 1 else 'references'
+        print('{} {} to {} found:'.format(num_matches, word, ref))
         print('  ' + '\n  '.join(map(str, matches)))
     else:
         print('No references to {} found.'.format(ref))
