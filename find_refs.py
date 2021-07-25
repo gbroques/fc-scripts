@@ -64,7 +64,7 @@ def parse_document_xml(document: str) -> Element:
 
 
 def find_root_by_document_path(cwd: str) -> Dict[str, Element]:
-    """Returns a dictionary where keys are filepaths to documents,
+    """Returns a dictionary where keys are document filepaths,
     and values are document xml root elements.
     """
     root_by_document = {}
@@ -140,7 +140,7 @@ def find_references_in_root(document_path: str,
 
 
 class Property:
-    """Represents a property with a potential reference."""
+    """Represents a property with a potential external or cross-document reference."""
 
     def __init__(self,
                  property_element: Element,
