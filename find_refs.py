@@ -195,7 +195,16 @@ def create_property(property_element: Element) -> Property:
     return None
 
 
-def find_refs(document: str, spreadsheet: str, alias: str) -> List[Match]:
+def find_refs(ref: Reference) -> List[Match]:
+    matches = []
+    root_by_document = find_root_by_document()
+    for document_name, root in root_by_document.items():
+        matches_in_doc = find_references_in_root(document_name, root, ref)
+        matches.extend(matches_in_doc)
+    return matches
+
+
+def rename_refs(document: str, spreadsheet: str, alias: str) -> List[Match]:
     matches = []
     root_by_document = find_root_by_document()
     for document_name, root in root_by_document.items():
@@ -213,5 +222,10 @@ if __name__ == '__main__':
     parser.add_argument('spreadsheet', help='Spreadsheet name or label.')
     parser.add_argument('alias', help='Alias name.')
     args = parser.parse_args()
-    matches = find_refs(args.document, args.spreadsheet, args.alias)
-    print('\n'.join(map(str, matches)))
+    ref = Reference(args.document, args.spreadsheet, args.alias)
+    matches = find_refs(ref)
+    if matches:
+        print('{} references to {} found:'.format(len(matches), ref))
+        print('  ' + '\n  '.join(map(str, matches)))
+    else:
+        print('No references to {} found.'.format(ref))
