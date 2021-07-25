@@ -1,7 +1,9 @@
 import argparse
 import glob
+import os
 import re
 import zipfile
+from pathlib import Path
 from typing import Callable, Dict, List
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
@@ -61,12 +63,13 @@ def parse_document_xml(document: str) -> Element:
     return ElementTree.fromstring(document_xml)
 
 
-def find_root_by_document() -> Dict[str, Element]:
+def find_root_by_document(cwd: str) -> Dict[str, Element]:
     """Returns a dictionary where keys are document names,
     and values are document xml root elements.
     """
     root_by_document = {}
-    documents = glob.glob('*.FCStd')
+    pattern = Path(cwd).joinpath('**', '*.FCStd').as_posix()
+    documents = glob.glob(pattern, recursive=True)
     for document in documents:
         root = parse_document_xml(document)
         root_by_document[document] = root
@@ -199,11 +202,12 @@ def create_property(property_element: Element) -> Property:
     return None
 
 
-def find_references(reference: Reference) -> List[Match]:
+def find_references(cwd: str, reference: Reference) -> List[Match]:
     matches = []
-    root_by_document = find_root_by_document()
+    root_by_document = find_root_by_document(cwd)
     for document, root in root_by_document.items():
-        matches_in_document = find_references_in_root(document, root, reference)
+        matches_in_document = find_references_in_root(
+            document, root, reference)
         matches.extend(matches_in_document)
     return matches
 
@@ -216,7 +220,7 @@ def rename_references(from_reference: Reference,
                Find file named 'XXX.FCStd'.
              Else
                Go through every document looking for the one wit the label
-          
+
           2) Then find object with name or label.
 
                 <Object name="Spreadsheet">
@@ -224,7 +228,7 @@ def rename_references(from_reference: Reference,
                     <Property name="Label" type="App::PropertyString" status="134217728">
                         <String value="Spreadsheet"/>
                     </Property>
-          
+
           3) Then find cell with alias.
 
                 <Property name="cells" type="Spreadsheet::PropertySheet" status="67108864">
@@ -235,7 +239,7 @@ def rename_references(from_reference: Reference,
                         <Cell address="B1" content="5" alias="Test" />
                     </Cells>
                 </Property>
-          
+
           4) Output new XML depending upon to_reference (change alias, spreadsheet name or label).
     """
     pass
@@ -286,6 +290,7 @@ def remove_external_links(document: str) -> Dict[str, Element]:
 
 
 if __name__ == '__main__':
+    cwd = os.getcwd()
     parser = argparse.ArgumentParser(
         description='Find cross-document spreadsheet references.')
     parser.add_argument(
@@ -294,11 +299,16 @@ if __name__ == '__main__':
     parser.add_argument('alias', help='Alias name.')
     args = parser.parse_args()
     ref = Reference(args.document, args.spreadsheet, args.alias)
-    matches = find_references(ref)
+    matches = find_references(cwd, ref)
+
+    def format_match(match: Match) -> str:
+        beginning_path = cwd + os.path.sep
+        return str(match).replace(beginning_path, '')
+
     if matches:
         num_matches = len(matches)
         word = 'refrence' if num_matches == 1 else 'references'
         print('{} {} to {} found:'.format(num_matches, word, ref))
-        print('  ' + '\n  '.join(map(str, matches)))
+        print('  ' + '\n  '.join(map(format_match, matches)))
     else:
         print('No references to {} found.'.format(ref))
