@@ -8,15 +8,15 @@ from xml.etree.ElementTree import Element
 
 
 class Reference:
-    """Represents a reference to an alias of a spreadsheet in another document."""
+    """Represents a reference to the property of an object in another document."""
 
     def __init__(self,
                  document: str,
-                 spreadsheet: str,
-                 alias: str) -> None:
+                 object_name: str,
+                 property_name: str) -> None:
         self.document = document
-        self.spreadsheet = spreadsheet
-        self.alias = alias
+        self.object_name = object_name
+        self.property_name = property_name
 
     def __str__(self):
         return self._to_string()
@@ -25,7 +25,7 @@ class Reference:
         return self._to_string()
 
     def _to_string(self):
-        return '{}#{}.{}'.format(self.document, self.spreadsheet, self.alias)
+        return '{}#{}.{}'.format(self.document, self.object_name, self.property_name)
 
 
 class Match:
@@ -48,7 +48,10 @@ class Match:
         return self._to_string()
 
     def _to_string(self):
-        return '{}#{}.{} {}'.format(self.document, self.object_name, self.property_name, self.location)
+        return '{} {}.{}'.format(
+            self.document,
+            self.object_name,
+            self.location)
 
 
 def parse_document_xml(document: str) -> Element:
@@ -195,20 +198,21 @@ def create_property(property_element: Element) -> Property:
     return None
 
 
-def find_refs(ref: Reference) -> List[Match]:
+def find_references(reference: Reference) -> List[Match]:
     matches = []
     root_by_document = find_root_by_document()
-    for document_name, root in root_by_document.items():
-        matches_in_doc = find_references_in_root(document_name, root, ref)
-        matches.extend(matches_in_doc)
+    for document, root in root_by_document.items():
+        matches_in_document = find_references_in_root(document, root, reference)
+        matches.extend(matches_in_document)
     return matches
 
 
-def rename_refs(from_ref: Reference, to_ref: Reference) -> Dict[str, Element]:
+def rename_references(from_reference: Reference,
+                      to_reference: Reference) -> Dict[str, Element]:
     pass
 
 
-def remove_cross_document_links(document: str) -> Dict[str, Element]:
+def remove_external_links(document: str) -> Dict[str, Element]:
     """
     https://github.com/FreeCAD/FreeCAD/blob/0.19.2/src/App/PropertyLinks.cpp#L4473-L4510
     https://github.com/FreeCAD/FreeCAD/blob/0.19.2/src/App/PropertyLinks.cpp#L3155-L3249
@@ -261,7 +265,7 @@ if __name__ == '__main__':
     parser.add_argument('alias', help='Alias name.')
     args = parser.parse_args()
     ref = Reference(args.document, args.spreadsheet, args.alias)
-    matches = find_refs(ref)
+    matches = find_references(ref)
     if matches:
         num_matches = len(matches)
         word = 'refrence' if num_matches == 1 else 'references'
