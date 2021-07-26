@@ -309,7 +309,7 @@ if __name__ == '__main__':
 
     if matches:
         num_matches = len(matches)
-        word = 'refrence' if num_matches == 1 else 'references'
+        word = 'reference' if num_matches == 1 else 'references'
         print('{} {} to {} found:'.format(num_matches, word, ref))
         print('  ' + '\n  '.join(map(format_match, matches)))
     else:
